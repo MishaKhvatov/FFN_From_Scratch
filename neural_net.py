@@ -25,7 +25,7 @@ def forward_propagation(input_layer, weights_1, bias_1, weights_2, bias_2, weigh
     z_output = np.dot(weights_3, layer_2) + bias_3
     output_probabilities = softmax(z_output)
     
-    return output_probabilities, layer_1, layer_2
+    return layer_1, layer_2, output_probabilities
 
 def backward_propagation(input_layer, true_labels, output_probabilities, layer_1, layer_2, weights_2, weights_3):
     delta_output = output_probabilities - true_labels
@@ -42,13 +42,21 @@ def backward_propagation(input_layer, true_labels, output_probabilities, layer_1
     dbias_1 = np.sum(delta_layer1, axis=1, keepdims=True)
 
     return dweights_1, dbias_1, dweights_2, dbias_2, dweights_3, dbias_3
-    
+
+def hot_encode(value):
+    out_vector = np.zeros((10,1))
+    out_vector[value, 1] =1;
+    return out_vector
 
 # Initialize layers and weights
 input_size = 784
 hidden_size_1 = 16
 hidden_size_2 = 16
 output_size = 10
+
+#Initilize Hyper Parameters
+BATCH_SIZE = 128
+
 
 weights_1 = np.random.randn(hidden_size_1, input_size)
 bias_1 = np.random.randn(hidden_size_1, 1)
@@ -73,6 +81,17 @@ test_data_np = np.array(test_data)
 test_labels_np = np.array(test_labels)
 
 
+while(True):
+    random_indices = np.random.shuffle(np.arange(train_data.shape))
+    train_data = train_data[random_indices]
+    train_labels = train_labels[random_indices]
+    loss_sum = 0;
+    for i in range(BATCH_SIZE):
+        input_vector = np.array(train_data[i])
+        layers = forward_propagation(input_vector , weights_1, bias_1, weights_2, bias_2, weights_3, bias_3)
+        loss_sum += cross_entropy(hot_encode(train_labels[i]), layers[2])
+    loss = loss/BATCH_SIZE;
+        
 
 
 
