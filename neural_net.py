@@ -80,26 +80,52 @@ train_labels_np = np.array(train_labels)
 test_data_np = np.array(test_data)
 test_labels_np = np.array(test_labels)
 
+
+LEARNING_RATE = 0.01  
+
 #Training Loop
 while(True):
-    random_indices = np.random.shuffle(np.arange(train_data.shape))
+    random_indices = np.arange(train_data.shape[0])
+    np.random.shuffle(random_indices)
     train_data = train_data[random_indices]
     train_labels = train_labels[random_indices]
-    loss_sum = 0;
-    gradient_sum = np.zeros(hidden_size_1, input_size), np.zeros(hidden_size_1, 1), np.zeros(hidden_size_2, hidden_size_1), np.zeros(hidden_size_2, 1) , np.zeros(output_size, hidden_size_2), np.zeros((output_size, 1))
+    loss_sum = 0
     
-    #Mini Batch
+    gradient_sum = (
+        np.zeros((hidden_size_1, input_size)), 
+        np.zeros((hidden_size_1, 1)), 
+        np.zeros((hidden_size_2, hidden_size_1)), 
+        np.zeros((hidden_size_2, 1)), 
+        np.zeros((output_size, hidden_size_2)), 
+        np.zeros((output_size, 1))
+    )
+    
+    # Mini Batch
     for i in range(BATCH_SIZE):
-        input_vector = np.array(train_data[i])
-        layers = forward_propagation(input_vector , weights_1, bias_1, weights_2, bias_2, weights_3, bias_3)
-        gradient_element= backward_propagation(input_vector, hot_encode(train_labels[i]), layers[2], layers[0], layers[1], weights_2, weights_3);
+        input_vector = train_data[i]
+        layers = forward_propagation(input_vector, weights_1, bias_1, weights_2, bias_2, weights_3, bias_3)
+        gradient_element = backward_propagation(input_vector, hot_encode(train_labels[i]), layers[2], layers[0], layers[1], weights_2, weights_3)
        
-        gradient_sum = tuple(a+b for a,b in zip(gradient_sum, gradient_element) )
+        gradient_sum = tuple(a + b for a, b in zip(gradient_sum, gradient_element))
         loss_sum += cross_entropy(hot_encode(train_labels[i]), layers[2])
-    loss = loss/BATCH_SIZE;
-    gradient = tuple(x / BATCH_SIZE for x in gradient_sum )
     
-    #
+    # Average the loss
+    loss = loss_sum / BATCH_SIZE
+    gradient = tuple(x / BATCH_SIZE for x in gradient_sum)
+    
+    # Update Network using learning rate
+    weights_1 -= LEARNING_RATE * gradient[0]
+    bias_1 -= LEARNING_RATE * gradient[1]
+    weights_2 -= LEARNING_RATE * gradient[2]
+    bias_2 -= LEARNING_RATE * gradient[3]
+    weights_3 -= LEARNING_RATE * gradient[4]
+    bias_3 -= LEARNING_RATE * gradient[5]
+
+    if(loss < 0.1): break
+    
+    
+    
+     
 
 
 
